@@ -58,7 +58,6 @@ io.on('connection', (socket) => {
         io.to(data.matchId).emit('receive_message', data);
 
         try {
-            // Save to DB
             const newMessage = new Message({
                 matchId: data.matchId,
                 sender: data.sender,
@@ -68,6 +67,15 @@ io.on('connection', (socket) => {
         } catch (err) {
             console.error('Error saving message:', err);
         }
+    });
+
+    // Typing indicators
+    socket.on('typing_start', ({ matchId, senderName }) => {
+        socket.to(matchId).emit('typing_start', { senderName });
+    });
+
+    socket.on('typing_stop', ({ matchId }) => {
+        socket.to(matchId).emit('typing_stop');
     });
 
     socket.on('disconnect', () => {

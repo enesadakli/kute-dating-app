@@ -1,21 +1,26 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
+import { authHeader } from '../utils/auth';
+import GradientBackground from '../components/GradientBackground';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:3001/api';
 
 export default function MatchesScreen({ route, navigation }) {
     const { user } = route.params || {};
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchMatches();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchMatches();
+        }, [])
+    );
 
     const fetchMatches = async () => {
         try {
-            const response = await axios.get(`${API_URL}/matches/${user._id}`);
+            const response = await axios.get(`${API_URL}/matches/${user._id}`, { headers: authHeader() });
             setMatches(response.data);
         } catch (error) {
             console.error('Error fetching matches:', error);
@@ -40,22 +45,26 @@ export default function MatchesScreen({ route, navigation }) {
                 <Text style={styles.matchName}>{item.user.name}</Text>
                 <Text style={styles.bio} numberOfLines={1}>{item.user.bio || 'No bio'}</Text>
             </View>
+            <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
     );
 
     if (loading) {
         return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#ff4b4b" />
-            </View>
+            <GradientBackground>
+                <View style={styles.centered}>
+                    <ActivityIndicator size="large" color="#fff" />
+                </View>
+            </GradientBackground>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <GradientBackground>
             {matches.length === 0 ? (
                 <View style={styles.centered}>
-                    <Text style={styles.emptyText}>No matches yet. Keep swiping!</Text>
+                    <Text style={styles.emptyText}>No matches yet.</Text>
+                    <Text style={styles.emptySubText}>Keep swiping! 💕</Text>
                 </View>
             ) : (
                 <FlatList
@@ -65,58 +74,74 @@ export default function MatchesScreen({ route, navigation }) {
                     contentContainerStyle={styles.list}
                 />
             )}
-        </View>
+        </GradientBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
     emptyText: {
-        fontSize: 16,
-        color: '#888',
+        fontSize: 18,
+        color: '#fff',
+        fontWeight: '700',
+        marginBottom: 6,
+    },
+    emptySubText: {
+        fontSize: 15,
+        color: 'rgba(255,255,255,0.6)',
     },
     list: {
-        padding: 10,
+        padding: 16,
     },
     matchItem: {
         flexDirection: 'row',
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
         alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.14)',
+        borderRadius: 18,
+        padding: 14,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
     },
     avatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
         backgroundColor: '#ff4b4b',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 15,
+        marginRight: 14,
+        shadowColor: '#ff4b4b',
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 5,
     },
     avatarText: {
         color: '#fff',
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
     },
     matchInfo: {
         flex: 1,
     },
     matchName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 5,
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#fff',
+        marginBottom: 3,
     },
     bio: {
-        fontSize: 14,
-        color: '#888',
+        fontSize: 13,
+        color: 'rgba(255,255,255,0.55)',
+    },
+    chevron: {
+        fontSize: 24,
+        color: 'rgba(255,255,255,0.4)',
+        fontWeight: '300',
     },
 });
