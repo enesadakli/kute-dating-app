@@ -6,14 +6,20 @@ const UserSchema = new mongoose.Schema({
     bio: { type: String, default: '' },
     photos: [{ type: String }],
     gender: { type: String, enum: ['male', 'female', 'other'], default: 'other' },
-    interestedIn: [{ type: String }], // e.g. ['male', 'female', 'other']
+    interestedIn: [{ type: String }],
     birthDate: { type: Date },
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     location: {
         type: { type: String, enum: ['Point'], default: 'Point' },
-        coordinates: { type: [Number], default: [0, 0] }
+        coordinates: { type: [Number], default: [0, 0] }  // [longitude, latitude]
     },
     interests: [{ type: String }],
+    ageRange: {
+        min: { type: Number, default: 18 },
+        max: { type: Number, default: 60 },
+    },
+    maxDistance: { type: Number, default: 100 }, // km
+    frozen: { type: Boolean, default: false },
 }, { timestamps: true });
 
 UserSchema.index({ location: '2dsphere' });

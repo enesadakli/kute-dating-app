@@ -8,7 +8,7 @@ import { BlurView } from 'expo-blur';
 import axios from 'axios';
 import { authHeader, clearToken } from '../utils/auth';
 import GradientBackground from '../components/GradientBackground';
-import { CameraIcon, PencilIcon, ArrowRightOnRectangleIcon, CheckIcon, TrashIcon } from 'react-native-heroicons/outline';
+import { CameraIcon, PencilIcon, ArrowRightOnRectangleIcon, CheckIcon, TrashIcon, Cog6ToothIcon } from 'react-native-heroicons/outline';
 
 const API_URL = 'http://localhost:3001/api';
 const BASE_URL = 'http://localhost:3001';
@@ -115,10 +115,15 @@ export default function ProfileScreen({ route, navigation }) {
                 {/* Header */}
                 <View style={styles.headerRow}>
                     <Text style={styles.title}>My Profile</Text>
-                    <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-                        <ArrowRightOnRectangleIcon size={20} color="#fff" />
-                        <Text style={styles.logoutText}>Logout</Text>
-                    </TouchableOpacity>
+                    <View style={styles.headerActions}>
+                        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Settings', { user })}>
+                            <Cog6ToothIcon size={20} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                            <ArrowRightOnRectangleIcon size={20} color="#fff" />
+                            <Text style={styles.logoutText}>Logout</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Photos section */}
@@ -244,6 +249,20 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         color: '#fff',
         letterSpacing: -0.5,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    iconBtn: {
+        width: 38, height: 38,
+        borderRadius: 19,
+        backgroundColor: 'rgba(255,255,255,0.12)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.18)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     logoutBtn: {
         flexDirection: 'row',
