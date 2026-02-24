@@ -1,19 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
-export default function MessageBubble({ item, isMe }) {
+const BASE_URL = 'http://localhost:3001';
+
+export default function MessageBubble({ item, isMe, matchPhoto }) {
     return (
         <Animated.View
             entering={FadeInDown.springify().damping(18).stiffness(120)}
             style={[styles.row, isMe ? styles.rowMe : styles.rowThem]}
         >
             {!isMe && (
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                        {(item.senderName || '?')[0].toUpperCase()}
-                    </Text>
-                </View>
+                matchPhoto ? (
+                    <Image
+                        source={{ uri: `${BASE_URL}${matchPhoto}` }}
+                        style={styles.avatarPhoto}
+                    />
+                ) : (
+                    <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>
+                            {(item.senderName || '?')[0].toUpperCase()}
+                        </Text>
+                    </View>
+                )
             )}
             <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
                 {!isMe && (
@@ -41,11 +50,19 @@ const styles = StyleSheet.create({
     },
     rowMe: { justifyContent: 'flex-end' },
     rowThem: { justifyContent: 'flex-start' },
+    avatarPhoto: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        marginRight: 8,
+        marginBottom: 2,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+    },
     avatar: {
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: '#ff4b4b',
+        backgroundColor: 'rgba(192,38,211,0.55)',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 8,
@@ -59,23 +76,25 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
     bubbleMe: {
-        backgroundColor: '#ff4b4b',
+        backgroundColor: 'rgba(192,38,211,0.85)',
         borderBottomRightRadius: 4,
     },
     bubbleThem: {
-        backgroundColor: '#f0f0f0',
+        backgroundColor: 'rgba(255,255,255,0.12)',
         borderBottomLeftRadius: 4,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     senderName: {
         fontSize: 11,
-        color: '#999',
+        color: 'rgba(255,255,255,0.5)',
         marginBottom: 3,
         fontWeight: '600',
     },
     text: { fontSize: 15, lineHeight: 20 },
     textMe: { color: '#fff' },
-    textThem: { color: '#222' },
+    textThem: { color: 'rgba(255,255,255,0.9)' },
     time: { fontSize: 10, marginTop: 4, alignSelf: 'flex-end' },
-    timeMe: { color: 'rgba(255,255,255,0.6)' },
-    timeThem: { color: '#bbb' },
+    timeMe: { color: 'rgba(255,255,255,0.5)' },
+    timeThem: { color: 'rgba(255,255,255,0.35)' },
 });

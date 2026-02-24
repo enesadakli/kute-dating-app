@@ -5,6 +5,10 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     bio: { type: String, default: '' },
     photos: [{ type: String }],
+    gender: { type: String, enum: ['male', 'female', 'other'], default: 'other' },
+    interestedIn: [{ type: String }], // e.g. ['male', 'female', 'other']
+    birthDate: { type: Date },
+    blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     location: {
         type: { type: String, enum: ['Point'], default: 'Point' },
         coordinates: { type: [Number], default: [0, 0] }

@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
 import axios from 'axios';
 import { setToken } from '../utils/auth';
 import GradientBackground from '../components/GradientBackground';
 
 const API_URL = 'http://localhost:3001/api';
+const GENDER_OPTIONS = ['male', 'female', 'other'];
 
 export default function LoginScreen({ navigation }) {
     const [isLogin, setIsLogin] = useState(false);
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [bio, setBio] = useState('');
+    const [gender, setGender] = useState('other');
+    const [interestedIn, setInterestedIn] = useState([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const toggleInterestedIn = (val) => {
+        setInterestedIn(prev =>
+            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+        );
+    };
 
     const handleSubmit = async () => {
         if (!name.trim() || !password.trim()) {
@@ -26,7 +35,7 @@ export default function LoginScreen({ navigation }) {
             const endpoint = isLogin ? '/users/login' : '/users/register';
             const payload = isLogin
                 ? { name, password }
-                : { name, password, bio, interests: ['coding', 'coffee'] };
+                : { name, password, bio, gender, interestedIn, interests: [] };
             const response = await axios.post(`${API_URL}${endpoint}`, payload);
             const { token, user } = response.data;
             setToken(token);
@@ -41,7 +50,7 @@ export default function LoginScreen({ navigation }) {
 
     return (
         <GradientBackground>
-            <View style={styles.inner}>
+            <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 {/* Logo */}
                 <Text style={styles.title}>kute</Text>
                 <Text style={styles.subtitle}>Find your match.</Text>
@@ -80,7 +89,7 @@ export default function LoginScreen({ navigation }) {
                     {!isLogin && (
                         <TextInput
                             style={styles.input}
-                            placeholder="A short bio"
+                            placeholder="A short bio (optional)"
                             placeholderTextColor="rgba(255,255,255,0.45)"
                             value={bio}
                             onChangeText={setBio}
@@ -96,6 +105,41 @@ export default function LoginScreen({ navigation }) {
                         secureTextEntry
                     />
 
+                    {/* Gender and preference only on register */}
+                    {!isLogin && (
+                        <>
+                            <Text style={styles.fieldLabel}>I am</Text>
+                            <View style={styles.chipRow}>
+                                {GENDER_OPTIONS.map(g => (
+                                    <TouchableOpacity
+                                        key={g}
+                                        style={[styles.chip, gender === g && styles.chipActive]}
+                                        onPress={() => setGender(g)}
+                                    >
+                                        <Text style={[styles.chipText, gender === g && styles.chipTextActive]}>
+                                            {g.charAt(0).toUpperCase() + g.slice(1)}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <Text style={styles.fieldLabel}>Interested in</Text>
+                            <View style={styles.chipRow}>
+                                {GENDER_OPTIONS.map(opt => (
+                                    <TouchableOpacity
+                                        key={opt}
+                                        style={[styles.chip, interestedIn.includes(opt) && styles.chipActive]}
+                                        onPress={() => toggleInterestedIn(opt)}
+                                    >
+                                        <Text style={[styles.chipText, interestedIn.includes(opt) && styles.chipTextActive]}>
+                                            {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </>
+                    )}
+
                     {error ? <Text style={styles.error}>{error}</Text> : null}
 
                     <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
@@ -104,16 +148,19 @@ export default function LoginScreen({ navigation }) {
                         </Text>
                     </TouchableOpacity>
                 </BlurView>
-            </View>
+
+                <View style={{ height: 40 }} />
+            </ScrollView>
         </GradientBackground>
     );
 }
 
 const styles = StyleSheet.create({
     inner: {
-        flex: 1,
+        flexGrow: 1,
         justifyContent: 'center',
         padding: 24,
+        paddingTop: 60,
     },
     title: {
         fontSize: 64,
@@ -172,6 +219,42 @@ const styles = StyleSheet.create({
         color: '#fff',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.18)',
+    },
+    fieldLabel: {
+        color: 'rgba(255,255,255,0.65)',
+        fontWeight: '600',
+        fontSize: 13,
+        marginBottom: 8,
+        marginTop: 4,
+        textTransform: 'uppercase',
+        letterSpacing: 0.6,
+    },
+    chipRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 14,
+        flexWrap: 'wrap',
+    },
+    chip: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.2)',
+    },
+    chipActive: {
+        backgroundColor: 'rgba(255,255,255,0.85)',
+        borderColor: 'transparent',
+    },
+    chipText: {
+        color: 'rgba(255,255,255,0.7)',
+        fontWeight: '600',
+        fontSize: 13,
+    },
+    chipTextActive: {
+        color: '#7c3aed',
+        fontWeight: '700',
     },
     error: {
         color: 'rgba(255,210,210,1)',

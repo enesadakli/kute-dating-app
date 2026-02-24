@@ -20,6 +20,8 @@ router.post('/:matchId/analyze', async (req, res) => {
         let formattedMessages;
 
         // Use messages sent from frontend if available (real-time state)
+        const currentUserName = req.body.currentUserName || null;
+
         if (req.body.messages && req.body.messages.length >= 2) {
             formattedMessages = req.body.messages;
         } else {
@@ -39,7 +41,7 @@ router.post('/:matchId/analyze', async (req, res) => {
             return res.status(400).json({ message: "Not enough messages to analyze." });
         }
 
-        const analysis = await analyzeChatSentiment(formattedMessages);
+        const analysis = await analyzeChatSentiment(formattedMessages, currentUserName);
         res.json(analysis);
 
     } catch (err) {

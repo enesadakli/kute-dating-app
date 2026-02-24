@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-    View, Text, StyleSheet, ActivityIndicator,
+    View, Text, StyleSheet, ActivityIndicator, Image,
     Animated, PanResponder, Dimensions, TouchableOpacity
 } from 'react-native';
+
+const BASE_URL = 'http://localhost:3001';
 import { useFocusEffect } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import axios from 'axios';
@@ -10,6 +12,7 @@ import { authHeader } from '../utils/auth';
 import { LikeButton, NopeButton } from '../components/AnimatedLikeButton';
 import MatchCelebration from '../components/MatchCelebration';
 import GradientBackground from '../components/GradientBackground';
+import { ChatBubbleLeftRightIcon, HeartIcon, XMarkIcon } from 'react-native-heroicons/outline';
 
 const API_URL = 'http://localhost:3001/api';
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -162,15 +165,19 @@ export default function HomeScreen({ route, navigation }) {
             {/* Glass header */}
             <BlurView intensity={20} tint="light" style={styles.header}>
                 <Text style={styles.headerTitle}>Discover</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Matches', { user })}>
-                    <Text style={styles.matchesLink}>💬 Matches</Text>
+                <TouchableOpacity
+                    style={styles.matchesBtn}
+                    onPress={() => navigation.navigate('Matches', { user })}
+                >
+                    <ChatBubbleLeftRightIcon size={22} color="#fff" />
+                    <Text style={styles.matchesLink}>Matches</Text>
                 </TouchableOpacity>
             </BlurView>
 
             {users.length === 0 ? (
                 <View style={styles.emptyContainer}>
                     <Text style={styles.emptyText}>No more users to discover!</Text>
-                    <Text style={styles.emptySubText}>Check your matches 💬</Text>
+                    <Text style={styles.emptySubText}>Check your matches</Text>
                 </View>
             ) : (
                 <View style={styles.cardArea}>
@@ -178,11 +185,18 @@ export default function HomeScreen({ route, navigation }) {
                     {users.length > 1 && (
                         <View style={[styles.card, styles.nextCard]}>
                             <View style={styles.cardContent}>
-                                <View style={styles.avatarLarge}>
-                                    <Text style={styles.avatarText}>
-                                        {users[1].name[0].toUpperCase()}
-                                    </Text>
-                                </View>
+                                {users[1].photos?.[0] ? (
+                                    <Image
+                                        source={{ uri: `${BASE_URL}${users[1].photos[0]}` }}
+                                        style={styles.cardPhoto}
+                                    />
+                                ) : (
+                                    <View style={styles.avatarLarge}>
+                                        <Text style={styles.avatarText}>
+                                            {users[1].name[0].toUpperCase()}
+                                        </Text>
+                                    </View>
+                                )}
                                 <Text style={styles.name}>{users[1].name}</Text>
                                 <Text style={styles.bio}>{users[1].bio || 'No bio provided'}</Text>
                             </View>
@@ -195,19 +209,28 @@ export default function HomeScreen({ route, navigation }) {
                         {...panResponder.panHandlers}
                     >
                         <Animated.View style={[styles.stamp, styles.likeStamp, { opacity: likeOpacity }]}>
-                            <Text style={styles.likeStampText}>LIKE ♥</Text>
+                            <HeartIcon size={16} color="#4caf50" />
+                            <Text style={styles.likeStampText}>LIKE</Text>
                         </Animated.View>
 
                         <Animated.View style={[styles.stamp, styles.nopeStamp, { opacity: nopeOpacity }]}>
-                            <Text style={styles.nopeStampText}>NOPE ✗</Text>
+                            <XMarkIcon size={16} color="#ff4b4b" />
+                            <Text style={styles.nopeStampText}>NOPE</Text>
                         </Animated.View>
 
                         <View style={styles.cardContent}>
-                            <View style={styles.avatarLarge}>
-                                <Text style={styles.avatarText}>
-                                    {users[0].name[0].toUpperCase()}
-                                </Text>
-                            </View>
+                            {users[0].photos?.[0] ? (
+                                <Image
+                                    source={{ uri: `${BASE_URL}${users[0].photos[0]}` }}
+                                    style={styles.cardPhoto}
+                                />
+                            ) : (
+                                <View style={styles.avatarLarge}>
+                                    <Text style={styles.avatarText}>
+                                        {users[0].name[0].toUpperCase()}
+                                    </Text>
+                                </View>
+                            )}
                             <Text style={styles.name}>{users[0].name}</Text>
                             <Text style={styles.bio}>{users[0].bio || 'No bio provided'}</Text>
                         </View>
@@ -243,7 +266,8 @@ const styles = StyleSheet.create({
         borderBottomColor: 'rgba(255,255,255,0.15)',
     },
     headerTitle: { fontSize: 24, fontWeight: '800', color: '#fff', letterSpacing: -0.5 },
-    matchesLink: { fontSize: 18, color: '#fff' },
+    matchesBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    matchesLink: { fontSize: 16, color: '#fff', fontWeight: '600' },
     cardArea: { flex: 1 },
     card: {
         position: 'absolute',
@@ -268,6 +292,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 30,
     },
+    cardPhoto: {
+        width: 160,
+        height: 200,
+        borderRadius: 20,
+        marginBottom: 20,
+        backgroundColor: '#eee',
+    },
     avatarLarge: {
         width: 120,
         height: 120,
@@ -289,10 +320,13 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 30,
         zIndex: 10,
-        borderWidth: 4,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        borderWidth: 3,
         borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
     },
     likeStamp: {
         left: 20,

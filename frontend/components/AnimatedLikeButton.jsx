@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { usePressScale, useHeartPop } from '../hooks/useMicroInteractions';
+import { HeartIcon, XMarkIcon } from 'react-native-heroicons/outline';
 
 export function LikeButton({ onPress }) {
     const { scale, onPressIn, onPressOut } = usePressScale(0.88);
@@ -28,7 +29,9 @@ export function LikeButton({ onPress }) {
             activeOpacity={1}
         >
             <Animated.View style={[styles.button, styles.likeButton, containerStyle]}>
-                <Animated.Text style={[styles.icon, heartStyle]}>♥</Animated.Text>
+                <Animated.View style={heartStyle}>
+                    <HeartIcon size={20} color="#fff" />
+                </Animated.View>
                 <Text style={styles.likeText}>Like</Text>
             </Animated.View>
         </TouchableOpacity>
@@ -50,7 +53,7 @@ export function NopeButton({ onPress }) {
             activeOpacity={1}
         >
             <Animated.View style={[styles.button, styles.nopeButton, containerStyle]}>
-                <Text style={styles.nopeIcon}>✗</Text>
+                <XMarkIcon size={20} color="#888" />
                 <Text style={styles.nopeText}>Nope</Text>
             </Animated.View>
         </TouchableOpacity>
@@ -79,8 +82,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: '#e0e0e0',
     },
-    icon: { fontSize: 18, color: '#fff' },
     likeText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-    nopeIcon: { fontSize: 18, color: '#888' },
     nopeText: { fontSize: 16, fontWeight: '700', color: '#666' },
 });

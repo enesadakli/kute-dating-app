@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import { authHeader } from '../utils/auth';
 import GradientBackground from '../components/GradientBackground';
+import { HeartIcon } from 'react-native-heroicons/outline';
 
 const API_URL = 'http://localhost:3001/api';
+const BASE_URL = 'http://localhost:3001';
 
 export default function MatchesScreen({ route, navigation }) {
     const { user } = route.params || {};
@@ -36,11 +38,19 @@ export default function MatchesScreen({ route, navigation }) {
                 matchId: item.matchId,
                 user,
                 matchName: item.user.name,
+                matchPhoto: item.user.photos?.[0] || null,
             })}
         >
-            <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.user.name[0].toUpperCase()}</Text>
-            </View>
+            {item.user.photos?.[0] ? (
+                <Image
+                    source={{ uri: `${BASE_URL}${item.user.photos[0]}` }}
+                    style={styles.avatarPhoto}
+                />
+            ) : (
+                <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{item.user.name[0].toUpperCase()}</Text>
+                </View>
+            )}
             <View style={styles.matchInfo}>
                 <Text style={styles.matchName}>{item.user.name}</Text>
                 <Text style={styles.bio} numberOfLines={1}>{item.user.bio || 'No bio'}</Text>
@@ -64,7 +74,10 @@ export default function MatchesScreen({ route, navigation }) {
             {matches.length === 0 ? (
                 <View style={styles.centered}>
                     <Text style={styles.emptyText}>No matches yet.</Text>
-                    <Text style={styles.emptySubText}>Keep swiping! 💕</Text>
+                    <View style={styles.emptyIconRow}>
+                        <HeartIcon size={18} color="rgba(255,255,255,0.6)" />
+                        <Text style={styles.emptySubText}>Keep swiping!</Text>
+                    </View>
                 </View>
             ) : (
                 <FlatList
@@ -90,6 +103,11 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         marginBottom: 6,
     },
+    emptyIconRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
     emptySubText: {
         fontSize: 15,
         color: 'rgba(255,255,255,0.6)',
@@ -100,26 +118,28 @@ const styles = StyleSheet.create({
     matchItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.14)',
+        backgroundColor: 'rgba(255,255,255,0.08)',
         borderRadius: 18,
         padding: 14,
         marginBottom: 10,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
+        borderColor: 'rgba(255,255,255,0.12)',
+    },
+    avatarPhoto: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        marginRight: 14,
+        backgroundColor: 'rgba(255,255,255,0.1)',
     },
     avatar: {
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#ff4b4b',
+        backgroundColor: 'rgba(192,38,211,0.6)',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 14,
-        shadowColor: '#ff4b4b',
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 5,
     },
     avatarText: {
         color: '#fff',
@@ -137,11 +157,11 @@ const styles = StyleSheet.create({
     },
     bio: {
         fontSize: 13,
-        color: 'rgba(255,255,255,0.55)',
+        color: 'rgba(255,255,255,0.45)',
     },
     chevron: {
         fontSize: 24,
-        color: 'rgba(255,255,255,0.4)',
+        color: 'rgba(255,255,255,0.3)',
         fontWeight: '300',
     },
 });

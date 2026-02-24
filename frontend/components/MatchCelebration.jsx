@@ -12,6 +12,7 @@ import Animated, {
     interpolate,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { HeartIcon, PaperAirplaneIcon, SparklesIcon } from 'react-native-heroicons/solid';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -117,7 +118,9 @@ export default function MatchCelebration({ visible, matchName, currentUserName, 
                         </Text>
                     </View>
 
-                    <Animated.Text style={[styles.heartEmoji, heartStyle]}>💕</Animated.Text>
+                    <Animated.View style={[styles.heartEmoji, heartStyle]}>
+                        <HeartIcon size={36} color="#ff4b4b" />
+                    </Animated.View>
 
                     <View style={[styles.avatar, styles.avatarRight]}>
                         <Text style={styles.avatarText}>
@@ -128,11 +131,12 @@ export default function MatchCelebration({ visible, matchName, currentUserName, 
 
                 <Text style={styles.title}>It's a Match!</Text>
                 <Text style={styles.subtitle}>
-                    Sen ve <Text style={styles.name}>{matchName}</Text> birbirinizi beğendiniz ✨
+                    Sen ve <Text style={styles.name}>{matchName}</Text> birbirinizi beğendiniz
                 </Text>
 
                 <TouchableOpacity style={styles.button} onPress={onContinue}>
-                    <Text style={styles.buttonText}>Mesaj Gönder 💬</Text>
+                    <PaperAirplaneIcon size={18} color="#fff" />
+                    <Text style={styles.buttonText}>Mesaj Gönder</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.skipBtn} onPress={onContinue}>
@@ -192,7 +196,7 @@ const styles = StyleSheet.create({
     avatarLeft: { backgroundColor: '#ff4b4b' },
     avatarRight: { backgroundColor: '#6366f1' },
     avatarText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
-    heartEmoji: { fontSize: 32 },
+    heartEmoji: {},
     title: {
         fontSize: 30,
         fontWeight: '800',
@@ -209,12 +213,15 @@ const styles = StyleSheet.create({
     },
     name: { fontWeight: '700', color: '#333' },
     button: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
         backgroundColor: '#ff4b4b',
         borderRadius: 14,
         paddingVertical: 14,
         paddingHorizontal: 32,
         width: '100%',
-        alignItems: 'center',
         marginBottom: 10,
         shadowColor: '#ff4b4b',
         shadowOpacity: 0.4,

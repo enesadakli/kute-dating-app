@@ -91,7 +91,7 @@ router.get('/:userId', authMiddleware, async (req, res) => {
         const matches = await Match.find({
             users: req.params.userId,
             status: 'matched',
-        }).populate('users', 'name bio');
+        }).populate('users', 'name bio photos');
 
         const result = matches.map((match) => {
             const otherUser = match.users.find(

@@ -15,6 +15,7 @@ import { BlurView } from 'expo-blur';
 import CircularGauge from './CircularGauge';
 import EmotionRadar from './EmotionRadar';
 import AnimatedProgressBar from './AnimatedProgressBar';
+import { SparklesIcon, ChatBubbleBottomCenterTextIcon } from 'react-native-heroicons/outline';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -89,7 +90,11 @@ export default function VibeAnalysisModal({ visible, onClose, data }) {
                             <Text style={[styles.vibeTag, { color: vibeColor }]}>
                                 {(data.vibe || '').toUpperCase()}
                             </Text>
-                            <Text style={styles.title}>Vibe Analizi ✨</Text>
+                            <View style={styles.titleRow}>
+                                <SparklesIcon size={22} color="#fff" />
+                                <Text style={styles.title}>Vibe Analizi</Text>
+                                <SparklesIcon size={22} color="#fff" />
+                            </View>
                         </Animated.View>
 
                         <View style={styles.divider} />
@@ -167,7 +172,7 @@ export default function VibeAnalysisModal({ visible, onClose, data }) {
                         {/* Advice */}
                         {data.advice ? (
                             <View style={styles.adviceCard}>
-                                <Text style={styles.adviceIcon}>💬</Text>
+                                <ChatBubbleBottomCenterTextIcon size={22} color="#ff4b4b" />
                                 <Text style={styles.adviceText}>{data.advice}</Text>
                             </View>
                         ) : null}
@@ -230,6 +235,11 @@ const styles = StyleSheet.create({
         letterSpacing: 2.8,
         marginBottom: 6,
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
     title: {
         fontSize: 28,
         fontWeight: '800',
@@ -272,7 +282,6 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         gap: 10,
     },
-    adviceIcon: { fontSize: 18 },
     adviceText: {
         flex: 1,
         fontSize: 14,

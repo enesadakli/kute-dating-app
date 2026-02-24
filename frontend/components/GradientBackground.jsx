@@ -8,10 +8,9 @@ import Animated, {
     withTiming,
     withSequence,
     Easing,
-    interpolate,
 } from 'react-native-reanimated';
 
-// Soft animated blob that drifts slowly
+// Gently drifting ambient blob
 function Blob({ style, color, delay = 0 }) {
     const tx = useSharedValue(0);
     const ty = useSharedValue(0);
@@ -20,27 +19,24 @@ function Blob({ style, color, delay = 0 }) {
     useEffect(() => {
         tx.value = withRepeat(
             withSequence(
-                withTiming(18, { duration: 5000 + delay, easing: Easing.inOut(Easing.sin) }),
-                withTiming(-12, { duration: 4500 + delay, easing: Easing.inOut(Easing.sin) }),
+                withTiming(14, { duration: 6000 + delay, easing: Easing.inOut(Easing.sin) }),
+                withTiming(-10, { duration: 5500 + delay, easing: Easing.inOut(Easing.sin) }),
             ),
-            -1,
-            true
+            -1, true
         );
         ty.value = withRepeat(
             withSequence(
-                withTiming(-14, { duration: 4200 + delay, easing: Easing.inOut(Easing.sin) }),
-                withTiming(20, { duration: 5200 + delay, easing: Easing.inOut(Easing.sin) }),
+                withTiming(-10, { duration: 5200 + delay, easing: Easing.inOut(Easing.sin) }),
+                withTiming(14, { duration: 6200 + delay, easing: Easing.inOut(Easing.sin) }),
             ),
-            -1,
-            true
+            -1, true
         );
         scale.value = withRepeat(
             withSequence(
-                withTiming(1.12, { duration: 3800 + delay, easing: Easing.inOut(Easing.sin) }),
-                withTiming(0.92, { duration: 4600 + delay, easing: Easing.inOut(Easing.sin) }),
+                withTiming(1.08, { duration: 4800 + delay, easing: Easing.inOut(Easing.sin) }),
+                withTiming(0.94, { duration: 5600 + delay, easing: Easing.inOut(Easing.sin) }),
             ),
-            -1,
-            true
+            -1, true
         );
     }, []);
 
@@ -62,41 +58,41 @@ function Blob({ style, color, delay = 0 }) {
 export default function GradientBackground({ children, style }) {
     return (
         <View style={[styles.root, style]}>
-            {/* Base gradient: pink → purple → deep blue */}
+            {/* Deep dark base gradient: near-black deep plum → midnight navy */}
             <LinearGradient
-                colors={['#ff2d78', '#c026d3', '#7c3aed', '#2563eb']}
-                start={{ x: 0.1, y: 0 }}
-                end={{ x: 0.9, y: 1 }}
+                colors={['#0e0514', '#1b0a35', '#12183d', '#070d1e']}
+                start={{ x: 0.15, y: 0 }}
+                end={{ x: 0.85, y: 1 }}
                 style={StyleSheet.absoluteFill}
             />
 
-            {/* Blob overlays for abstract depth */}
+            {/* Subtle ambient blobs — very low opacity */}
             <Blob
-                color="rgba(255, 60, 130, 0.35)"
+                color="rgba(180, 50, 120, 0.18)"
                 delay={0}
-                style={{ width: 320, height: 320, top: -80, left: -60 }}
+                style={{ width: 340, height: 340, top: -100, left: -80 }}
             />
             <Blob
-                color="rgba(139, 92, 246, 0.30)"
-                delay={800}
-                style={{ width: 280, height: 280, top: 120, right: -70 }}
+                color="rgba(100, 60, 200, 0.14)"
+                delay={900}
+                style={{ width: 300, height: 300, top: 140, right: -80 }}
             />
             <Blob
-                color="rgba(37, 99, 235, 0.28)"
-                delay={1600}
-                style={{ width: 240, height: 240, bottom: 60, left: 30 }}
+                color="rgba(30, 80, 180, 0.12)"
+                delay={1800}
+                style={{ width: 260, height: 260, bottom: 40, left: 20 }}
             />
             <Blob
-                color="rgba(236, 72, 153, 0.22)"
-                delay={400}
-                style={{ width: 180, height: 180, bottom: 180, right: 20 }}
+                color="rgba(160, 40, 100, 0.10)"
+                delay={500}
+                style={{ width: 200, height: 200, bottom: 160, right: 10 }}
             />
 
-            {/* Subtle top highlight */}
+            {/* Very subtle top-left highlight */}
             <LinearGradient
-                colors={['rgba(255,255,255,0.18)', 'transparent']}
+                colors={['rgba(255,255,255,0.04)', 'transparent']}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0.6 }}
+                end={{ x: 1, y: 0.7 }}
                 style={[StyleSheet.absoluteFill, styles.highlightOverlay]}
             />
 
@@ -113,9 +109,8 @@ const styles = StyleSheet.create({
     blob: {
         position: 'absolute',
         borderRadius: 999,
-        // blur effect via opacity layering (expo-blur not needed here)
     },
     highlightOverlay: {
-        opacity: 0.6,
+        opacity: 0.8,
     },
 });

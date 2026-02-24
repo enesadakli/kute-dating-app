@@ -4,11 +4,15 @@ dotenv.config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key_for_testing');
 
-export const analyzeChatSentiment = async (messages) => {
+export const analyzeChatSentiment = async (messages, currentUserName = null) => {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const formattedMessages = messages.map(m => `${m.senderName}: ${m.content}`).join('\n');
+
+        const adviceInstruction = currentUserName
+            ? `"advice": "<Sadece ${currentUserName} adlı kişiye hitap eden, onun bakış açısından kişisel ve samimi Türkçe tavsiye. Doğrudan '${currentUserName}' diye seslen, sanki ona özel konuşuyorsun. Max 2 cümle.>"`
+            : `"advice": "<taraflara kısa ve yaratıcı Türkçe tavsiye, max 2 cümle>"`;
 
         const prompt = `
 Sen bir ilişki danışmanı ve duygu analiz uzmanısın. Aşağıdaki konuşmayı analiz et ve SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey ekleme:
@@ -18,7 +22,7 @@ Sen bir ilişki danışmanı ve duygu analiz uzmanısın. Aşağıdaki konuşmay
   "compatibilityScore": <0-100 arası uzun vadeli uyumluluk skoru>,
   "toxicityScore": <0-100 arası toksisite skoru, düşük iyidir>,
   "vibe": "<konuşmanın genel enerjisi, Türkçe, örn: Flörtöz, Samimi, Gergin, Neşeli, Romantik>",
-  "advice": "<taraflara kısa ve yaratıcı Türkçe tavsiye, max 2 cümle>",
+  ${adviceInstruction},
   "emotions": {
     "joy": <0-1 arası mutluluk>,
     "sadness": <0-1 arası üzüntü>,
