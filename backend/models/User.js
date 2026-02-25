@@ -20,6 +20,7 @@ const UserSchema = new mongoose.Schema({
     },
     maxDistance: { type: Number, default: 100 }, // km
     frozen: { type: Boolean, default: false },
+    isDemo: { type: Boolean, default: false }, // always visible to all users
 }, { timestamps: true });
 
 UserSchema.index({ location: '2dsphere' });

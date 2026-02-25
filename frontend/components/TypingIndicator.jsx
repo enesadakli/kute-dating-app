@@ -7,6 +7,7 @@ import Animated, {
     withSequence,
     withTiming,
     withDelay,
+    Easing,
 } from 'react-native-reanimated';
 
 function Dot({ delay }) {
@@ -18,8 +19,8 @@ function Dot({ delay }) {
             delay,
             withRepeat(
                 withSequence(
-                    withTiming(-7, { duration: 280 }),
-                    withTiming(0, { duration: 280 }),
+                    withTiming(-5, { duration: 320, easing: Easing.inOut(Easing.sine) }),
+                    withTiming(0, { duration: 320, easing: Easing.inOut(Easing.sine) }),
                 ),
                 -1,
                 false
@@ -29,8 +30,8 @@ function Dot({ delay }) {
             delay,
             withRepeat(
                 withSequence(
-                    withTiming(1, { duration: 280 }),
-                    withTiming(0.4, { duration: 280 }),
+                    withTiming(1, { duration: 320, easing: Easing.inOut(Easing.sine) }),
+                    withTiming(0.4, { duration: 320, easing: Easing.inOut(Easing.sine) }),
                 ),
                 -1,
                 false
@@ -70,9 +71,11 @@ const styles = StyleSheet.create({
     bubble: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        borderRadius: 16,
-        borderBottomLeftRadius: 4,
+        backgroundColor: 'rgba(255,255,255,0.12)',
+        borderRadius: 12,
+        borderBottomLeftRadius: 3,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
         paddingHorizontal: 14,
         paddingVertical: 10,
         gap: 5,
@@ -81,11 +84,11 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#999',
+        backgroundColor: 'rgba(255,255,255,0.5)',
     },
     label: {
         fontSize: 12,
-        color: '#aaa',
+        color: 'rgba(255,255,255,0.4)',
         fontStyle: 'italic',
     },
 });

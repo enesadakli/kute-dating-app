@@ -6,10 +6,11 @@ import {
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
-    withSpring,
     withTiming,
     Easing,
 } from 'react-native-reanimated';
+
+const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
 import { BlurView } from 'expo-blur';
 import CircularGauge from './CircularGauge';
 import EmotionRadar from './EmotionRadar';
@@ -58,8 +59,8 @@ export default function AnalyzeModal({ visible, onClose, data }) {
 
     useEffect(() => {
         if (visible) {
-            opacity.value = withTiming(1, { duration: 300 });
-            translateY.value = withSpring(0, { damping: 22, stiffness: 200 });
+            opacity.value = withTiming(1, { duration: 250, easing: Easing.out(Easing.quad) });
+            translateY.value = withTiming(0, { duration: 340, easing: easeOut });
         } else {
             opacity.value = withTiming(0, { duration: 200 });
             translateY.value = withTiming(SCREEN_HEIGHT, { duration: 250 });
@@ -162,8 +163,8 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         maxHeight: SCREEN_HEIGHT * 0.88,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
         overflow: 'hidden',
     },
     blurContainer: {
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
     adviceCard: {
         flexDirection: 'row',
         backgroundColor: 'rgba(255,75,75,0.06)',
-        borderRadius: 14,
+        borderRadius: 8,
         padding: 14,
         borderLeftWidth: 3,
         borderLeftColor: '#ff4b4b',
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
     },
     closeBtn: {
         backgroundColor: '#ff4b4b',
-        borderRadius: 14,
+        borderRadius: 7,
         paddingVertical: 14,
         alignItems: 'center',
     },

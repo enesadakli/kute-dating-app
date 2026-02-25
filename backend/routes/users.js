@@ -45,9 +45,12 @@ router.get('/', authMiddleware, async (req, res) => {
             frozen: { $ne: true }, // exclude frozen accounts
         };
 
-        // Gender preference filter
+        // Gender preference filter — demo users bypass this filter
         if (currentUser.interestedIn && currentUser.interestedIn.length > 0) {
-            query.gender = { $in: currentUser.interestedIn };
+            query.$or = [
+                { isDemo: true },
+                { gender: { $in: currentUser.interestedIn } },
+            ];
         }
 
         // Distance filter (only when user has a real location)

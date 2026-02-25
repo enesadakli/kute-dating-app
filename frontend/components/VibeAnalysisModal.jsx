@@ -6,11 +6,12 @@ import {
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
-    withSpring,
     withTiming,
     withDelay,
     Easing,
 } from 'react-native-reanimated';
+
+const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
 import { BlurView } from 'expo-blur';
 import CircularGauge from './CircularGauge';
 import EmotionRadar from './EmotionRadar';
@@ -30,13 +31,13 @@ export default function VibeAnalysisModal({ visible, onClose, data }) {
 
     useEffect(() => {
         if (visible) {
-            // Step 1 (t=0): backdrop + sheet slide up with heavy spring
-            backdropOpacity.value = withTiming(1, { duration: 300 });
-            translateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+            // Step 1 (t=0): backdrop + sheet slide up
+            backdropOpacity.value = withTiming(1, { duration: 250, easing: Easing.out(Easing.quad) });
+            translateY.value = withTiming(0, { duration: 380, easing: easeOut });
 
-            // Step 2 (t=200ms): header scales + fades in
-            headerOpacity.value = withDelay(200, withTiming(1, { duration: 400 }));
-            headerScale.value = withDelay(200, withSpring(1, { damping: 12, stiffness: 150 }));
+            // Step 2 (t=180ms): header fades + scales in
+            headerOpacity.value = withDelay(180, withTiming(1, { duration: 350, easing: Easing.out(Easing.quad) }));
+            headerScale.value = withDelay(180, withTiming(1, { duration: 350, easing: easeOut }));
 
             // Force children to remount so their delayed animations restart fresh
             // (CircularGauge @500ms, bars @500/800/1100ms, radar @1400ms)
@@ -198,8 +199,8 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         maxHeight: SCREEN_HEIGHT * 0.9,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
         overflow: 'hidden',
         shadowColor: '#ff4b4b',
         shadowOpacity: 0.15,
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     adviceCard: {
         flexDirection: 'row',
         backgroundColor: 'rgba(255,75,75,0.08)',
-        borderRadius: 14,
+        borderRadius: 8,
         padding: 16,
         borderLeftWidth: 2,
         borderLeftColor: '#ff4b4b',
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
     },
     closeBtn: {
         backgroundColor: '#ff4b4b',
-        borderRadius: 14,
+        borderRadius: 7,
         paddingVertical: 15,
         alignItems: 'center',
         shadowColor: '#ff4b4b',

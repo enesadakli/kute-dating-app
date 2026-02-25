@@ -3,18 +3,18 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
-    withSpring,
     withTiming,
-    withSequence,
     withDelay,
-    withRepeat,
     Easing,
     interpolate,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { HeartIcon, PaperAirplaneIcon, SparklesIcon } from 'react-native-heroicons/solid';
+import { HeartIcon, PaperAirplaneIcon } from 'react-native-heroicons/solid';
 
-const { width: W, height: H } = Dimensions.get('window');
+const { width: W } = Dimensions.get('window');
+
+const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
 
 const PARTICLE_COUNT = 18;
 const PARTICLE_COLORS = ['#ff4b4b', '#ff9f43', '#ffd32a', '#0be881', '#67e8f9', '#a78bfa', '#f472b6'];
@@ -32,12 +32,12 @@ function Particle({ index }) {
 
     useEffect(() => {
         progress.value = withDelay(
-            index * 30,
-            withTiming(1, { duration: 900, easing: Easing.out(Easing.cubic) })
+            index * 25,
+            withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) })
         );
         opacity.value = withDelay(
-            index * 30 + 500,
-            withTiming(0, { duration: 400 })
+            index * 25 + 400,
+            withTiming(0, { duration: 350, easing: Easing.in(Easing.quad) })
         );
     }, []);
 
@@ -45,7 +45,7 @@ function Particle({ index }) {
         transform: [
             { translateX: progress.value * tx },
             { translateY: progress.value * ty },
-            { scale: interpolate(progress.value, [0, 0.3, 1], [0, 1.2, 0.8]) },
+            { scale: interpolate(progress.value, [0, 0.25, 1], [0, 1.05, 0.85]) },
         ],
         opacity: opacity.value,
         backgroundColor: color,
@@ -59,89 +59,76 @@ function Particle({ index }) {
 }
 
 export default function MatchCelebration({ visible, matchName, currentUserName, onContinue }) {
-    const scale = useSharedValue(0);
+    const scale = useSharedValue(0.88);
     const opacity = useSharedValue(0);
     const heartScale = useSharedValue(0);
-    const heartRotate = useSharedValue(-10);
 
     useEffect(() => {
         if (visible) {
-            opacity.value = withTiming(1, { duration: 300 });
-            scale.value = withSpring(1, { damping: 14, stiffness: 180 });
-            heartScale.value = withDelay(300, withSpring(1, { damping: 10, stiffness: 200 }));
-            heartRotate.value = withDelay(
-                300,
-                withRepeat(
-                    withSequence(
-                        withTiming(-8, { duration: 200 }),
-                        withTiming(8, { duration: 200 }),
-                    ),
-                    3,
-                    true
-                )
-            );
+            opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
+            scale.value = withTiming(1, { duration: 320, easing: easeOut });
+            heartScale.value = withDelay(180, withTiming(1, { duration: 280, easing: easeOut }));
             try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
         } else {
-            opacity.value = withTiming(0, { duration: 200 });
-            scale.value = withTiming(0.8, { duration: 200 });
+            opacity.value = withTiming(0, { duration: 180, easing: Easing.in(Easing.quad) });
+            scale.value = withTiming(0.92, { duration: 180, easing: Easing.in(Easing.quad) });
         }
     }, [visible]);
 
     const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
-    const cardStyle = useAnimatedStyle(() => ({
+    const cardScaleStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
     }));
     const heartStyle = useAnimatedStyle(() => ({
-        transform: [
-            { scale: heartScale.value },
-            { rotate: `${heartRotate.value}deg` },
-        ],
+        transform: [{ scale: heartScale.value }],
     }));
 
     if (!visible) return null;
 
     return (
         <Animated.View style={[styles.overlay, overlayStyle]}>
-            <Animated.View style={[styles.card, cardStyle]}>
-                {/* Particles */}
-                <View style={styles.particleContainer} pointerEvents="none">
-                    {Array.from({ length: PARTICLE_COUNT }).map((_, i) => (
-                        <Particle key={i} index={i} />
-                    ))}
-                </View>
-
-                {/* Avatars + Heart */}
-                <View style={styles.avatarsRow}>
-                    <View style={[styles.avatar, styles.avatarLeft]}>
-                        <Text style={styles.avatarText}>
-                            {(currentUserName || '?')[0].toUpperCase()}
-                        </Text>
+            <Animated.View style={cardScaleStyle}>
+                <BlurView intensity={40} tint="dark" style={styles.card}>
+                    {/* Particles */}
+                    <View style={styles.particleContainer} pointerEvents="none">
+                        {Array.from({ length: PARTICLE_COUNT }).map((_, i) => (
+                            <Particle key={i} index={i} />
+                        ))}
                     </View>
 
-                    <Animated.View style={[styles.heartEmoji, heartStyle]}>
-                        <HeartIcon size={36} color="#ff4b4b" />
-                    </Animated.View>
+                    {/* Avatars + Heart */}
+                    <View style={styles.avatarsRow}>
+                        <View style={[styles.avatar, styles.avatarLeft]}>
+                            <Text style={styles.avatarText}>
+                                {(currentUserName || '?')[0].toUpperCase()}
+                            </Text>
+                        </View>
 
-                    <View style={[styles.avatar, styles.avatarRight]}>
-                        <Text style={styles.avatarText}>
-                            {(matchName || '?')[0].toUpperCase()}
-                        </Text>
+                        <Animated.View style={[styles.heartEmoji, heartStyle]}>
+                            <HeartIcon size={34} color="#ff4b8b" />
+                        </Animated.View>
+
+                        <View style={[styles.avatar, styles.avatarRight]}>
+                            <Text style={styles.avatarText}>
+                                {(matchName || '?')[0].toUpperCase()}
+                            </Text>
+                        </View>
                     </View>
-                </View>
 
-                <Text style={styles.title}>It's a Match!</Text>
-                <Text style={styles.subtitle}>
-                    Sen ve <Text style={styles.name}>{matchName}</Text> birbirinizi beğendiniz
-                </Text>
+                    <Text style={styles.title}>It's a Match!</Text>
+                    <Text style={styles.subtitle}>
+                        Sen ve <Text style={styles.name}>{matchName}</Text> birbirinizi beğendiniz
+                    </Text>
 
-                <TouchableOpacity style={styles.button} onPress={onContinue}>
-                    <PaperAirplaneIcon size={18} color="#fff" />
-                    <Text style={styles.buttonText}>Mesaj Gönder</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.button} onPress={onContinue}>
+                        <PaperAirplaneIcon size={18} color="#fff" />
+                        <Text style={styles.buttonText}>Mesaj Gönder</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.skipBtn} onPress={onContinue}>
-                    <Text style={styles.skipText}>Şimdi değil</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.skipBtn} onPress={onContinue}>
+                        <Text style={styles.skipText}>Şimdi değil</Text>
+                    </TouchableOpacity>
+                </BlurView>
             </Animated.View>
         </Animated.View>
     );
@@ -150,22 +137,25 @@ export default function MatchCelebration({ visible, matchName, currentUserName, 
 const styles = StyleSheet.create({
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.75)',
+        backgroundColor: 'rgba(0,0,0,0.72)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 999,
     },
     card: {
-        backgroundColor: '#fff',
-        borderRadius: 28,
+        borderRadius: 12,
         padding: 32,
         alignItems: 'center',
         width: W * 0.85,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.18)',
         shadowColor: '#000',
-        shadowOpacity: 0.25,
-        shadowRadius: 20,
-        shadowOffset: { width: 0, height: 8 },
-        elevation: 12,
+        shadowOpacity: 0.45,
+        shadowRadius: 28,
+        shadowOffset: { width: 0, height: 10 },
+        elevation: 16,
     },
     particleContainer: {
         position: 'absolute',
@@ -186,49 +176,43 @@ const styles = StyleSheet.create({
         borderRadius: 36,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
-        borderColor: '#fff',
-        shadowColor: '#ff4b4b',
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.2)',
     },
-    avatarLeft: { backgroundColor: '#ff4b4b' },
-    avatarRight: { backgroundColor: '#6366f1' },
+    avatarLeft: { backgroundColor: 'rgba(255,75,75,0.65)' },
+    avatarRight: { backgroundColor: 'rgba(99,102,241,0.65)' },
     avatarText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
     heartEmoji: {},
     title: {
-        fontSize: 30,
-        fontWeight: '800',
-        color: '#ff4b4b',
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#ff6b9d',
         marginBottom: 8,
-        letterSpacing: -0.5,
+        letterSpacing: -0.3,
     },
     subtitle: {
         fontSize: 15,
-        color: '#666',
+        color: 'rgba(255,255,255,0.55)',
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: 24,
     },
-    name: { fontWeight: '700', color: '#333' },
+    name: { fontWeight: '700', color: '#fff' },
     button: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        backgroundColor: '#ff4b4b',
-        borderRadius: 14,
+        backgroundColor: 'rgba(192,38,211,0.8)',
+        borderRadius: 7,
         paddingVertical: 14,
         paddingHorizontal: 32,
         width: '100%',
         marginBottom: 10,
-        shadowColor: '#ff4b4b',
-        shadowOpacity: 0.4,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.15)',
     },
-    buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+    buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
     skipBtn: { paddingVertical: 8 },
-    skipText: { color: '#bbb', fontSize: 14 },
+    skipText: { color: 'rgba(255,255,255,0.3)', fontSize: 14 },
 });

@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
     },
     card: {
-        borderRadius: 26,
+        borderRadius: 12,
         overflow: 'hidden',
         backgroundColor: 'rgba(255,255,255,0.13)',
         borderWidth: 1,
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     toggleRow: {
         flexDirection: 'row',
         marginBottom: 20,
-        borderRadius: 10,
+        borderRadius: 6,
         overflow: 'hidden',
         backgroundColor: 'rgba(255,255,255,0.08)',
     },
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 12,
+        borderRadius: 6,
         padding: 15,
         marginBottom: 12,
         fontSize: 16,
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     button: {
         backgroundColor: '#fff',
         padding: 15,
-        borderRadius: 14,
+        borderRadius: 7,
         alignItems: 'center',
         marginTop: 6,
         shadowColor: '#000',

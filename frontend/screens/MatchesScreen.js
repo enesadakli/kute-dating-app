@@ -4,10 +4,26 @@ import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import { authHeader } from '../utils/auth';
 import GradientBackground from '../components/GradientBackground';
-import { HeartIcon } from 'react-native-heroicons/outline';
+import { HeartIcon, CheckIcon } from 'react-native-heroicons/outline';
+import { CheckIcon as CheckSolid } from 'react-native-heroicons/solid';
 
 const API_URL = 'http://localhost:3001/api';
 const BASE_URL = 'http://localhost:3001';
+
+function formatTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffDay = Math.floor(diffMs / 86400000);
+
+    if (diffMin < 1) return 'Şimdi';
+    if (diffMin < 60) return `${diffMin}d`;
+    if (diffDay < 1) return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    if (diffDay < 7) return ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'][date.getDay()];
+    return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+}
 
 export default function MatchesScreen({ route, navigation }) {
     const { user } = route.params || {};
@@ -31,33 +47,67 @@ export default function MatchesScreen({ route, navigation }) {
         }
     };
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.matchItem}
-            onPress={() => navigation.navigate('Chat', {
-                matchId: item.matchId,
-                user,
-                matchName: item.user.name,
-                matchPhoto: item.user.photos?.[0] || null,
-            })}
-        >
-            {item.user.photos?.[0] ? (
-                <Image
-                    source={{ uri: `${BASE_URL}${item.user.photos[0]}` }}
-                    style={styles.avatarPhoto}
-                />
-            ) : (
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{item.user.name[0].toUpperCase()}</Text>
+    const renderItem = ({ item }) => {
+        const msg = item.lastMessage;
+        const isUnread = msg && !msg.isFromMe && !msg.seen;
+
+        return (
+            <TouchableOpacity
+                style={styles.matchItem}
+                onPress={() => navigation.navigate('Chat', {
+                    matchId: item.matchId,
+                    user,
+                    matchName: item.user.name,
+                    matchPhoto: item.user.photos?.[0] || null,
+                })}
+            >
+                {item.user.photos?.[0] ? (
+                    <Image
+                        source={{ uri: `${BASE_URL}${item.user.photos[0]}` }}
+                        style={styles.avatarPhoto}
+                    />
+                ) : (
+                    <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>{item.user.name[0].toUpperCase()}</Text>
+                    </View>
+                )}
+                <View style={styles.matchInfo}>
+                    <Text style={[styles.matchName, isUnread && styles.matchNameUnread]}>
+                        {item.user.name}
+                    </Text>
+                    {msg ? (
+                        <Text style={[styles.lastMsg, isUnread && styles.lastMsgUnread]} numberOfLines={1}>
+                            {msg.isFromMe ? 'Sen: ' : ''}{msg.content}
+                        </Text>
+                    ) : (
+                        <Text style={styles.newMatch}>Merhaba de 👋</Text>
+                    )}
                 </View>
-            )}
-            <View style={styles.matchInfo}>
-                <Text style={styles.matchName}>{item.user.name}</Text>
-                <Text style={styles.bio} numberOfLines={1}>{item.user.bio || 'No bio'}</Text>
-            </View>
-            <Text style={styles.chevron}>›</Text>
-        </TouchableOpacity>
-    );
+
+                {/* Right: time + seen indicator */}
+                <View style={styles.rightCol}>
+                    {msg && (
+                        <Text style={[styles.timeText, isUnread && styles.timeTextUnread]}>
+                            {formatTime(msg.createdAt)}
+                        </Text>
+                    )}
+                    {msg?.isFromMe && (
+                        <View style={styles.tickRow}>
+                            {msg.seen ? (
+                                <>
+                                    <CheckSolid size={12} color="#c026d3" />
+                                    <CheckSolid size={12} color="#c026d3" style={styles.tickOverlap} />
+                                </>
+                            ) : (
+                                <CheckIcon size={12} color="rgba(255,255,255,0.3)" />
+                            )}
+                        </View>
+                    )}
+                    {isUnread && <View style={styles.unreadDot} />}
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     if (loading) {
         return (
@@ -119,7 +169,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 18,
+        borderRadius: 8,
         padding: 14,
         marginBottom: 10,
         borderWidth: 1,
@@ -155,13 +205,48 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginBottom: 3,
     },
-    bio: {
+    matchNameUnread: {
+        fontWeight: '800',
+    },
+    lastMsg: {
         fontSize: 13,
         color: 'rgba(255,255,255,0.45)',
     },
-    chevron: {
-        fontSize: 24,
+    lastMsgUnread: {
+        color: 'rgba(255,255,255,0.85)',
+        fontWeight: '600',
+    },
+    newMatch: {
+        fontSize: 13,
+        color: '#c026d3',
+        fontStyle: 'italic',
+    },
+    rightCol: {
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        gap: 6,
+        minWidth: 36,
+        marginLeft: 8,
+    },
+    timeText: {
+        fontSize: 11,
         color: 'rgba(255,255,255,0.3)',
-        fontWeight: '300',
+    },
+    timeTextUnread: {
+        color: '#c026d3',
+        fontWeight: '600',
+    },
+    tickRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    tickOverlap: {
+        marginLeft: -6,
+    },
+    unreadDot: {
+        width: 9,
+        height: 9,
+        borderRadius: 5,
+        backgroundColor: '#c026d3',
     },
 });

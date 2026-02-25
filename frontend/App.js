@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -24,13 +24,21 @@ function MainTabs({ route }) {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: 'rgba(15,5,30,0.95)',
+                    backgroundColor: 'transparent',
                     borderTopColor: 'rgba(255,255,255,0.1)',
                     borderTopWidth: 1,
                     paddingBottom: 6,
                     paddingTop: 6,
                     height: 58,
+                    position: 'absolute',
                 },
+                tabBarBackground: () => (
+                    <BlurView
+                        intensity={40}
+                        tint="dark"
+                        style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,4,22,0.55)' }]}
+                    />
+                ),
                 tabBarActiveTintColor: '#fff',
                 tabBarInactiveTintColor: 'rgba(255,255,255,0.38)',
                 tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },

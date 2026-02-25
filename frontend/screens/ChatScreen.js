@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
     FlatList, KeyboardAvoidingView, Platform, StatusBar, Alert,
@@ -185,9 +185,26 @@ export default function ChatScreen({ route, navigation }) {
         );
     };
 
-    const renderItem = ({ item }) => {
+    const renderItem = ({ item, index }) => {
         const isMe = item.sender === user._id || item.senderName === user.name;
-        return <MessageBubble item={item} isMe={isMe} matchPhoto={matchPhoto} />;
+
+        // Find last message sent by me
+        let lastMineIndex = -1;
+        for (let i = messages.length - 1; i >= 0; i--) {
+            const m = messages[i];
+            if (m.sender === user._id || m.senderName === user.name) {
+                lastMineIndex = i;
+                break;
+            }
+        }
+        const isLastMine = isMe && index === lastMineIndex;
+
+        // "Seen" = there's at least one message from them after our last message
+        const seen = isLastMine && messages.slice(lastMineIndex + 1).some(
+            m => m.sender !== user._id && m.senderName !== user.name
+        );
+
+        return <MessageBubble item={item} isMe={isMe} matchPhoto={matchPhoto} isLastMine={isLastMine} seen={seen} />;
     };
 
     return (
@@ -309,7 +326,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ff4b4b',
         paddingHorizontal: 20,
         paddingVertical: 8,
-        borderRadius: 20,
+        borderRadius: 7,
         shadowColor: '#ff4b4b',
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -321,12 +338,12 @@ const styles = StyleSheet.create({
     messageList: { paddingTop: 12, paddingBottom: 20 },
     inputWrapper: {
         borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
+        borderTopColor: 'rgba(255,255,255,0.08)',
     },
     inputBlur: {
         paddingHorizontal: 12,
         paddingVertical: 10,
-        backgroundColor: 'rgba(255,255,255,0.95)',
+        backgroundColor: 'rgba(10,4,22,0.6)',
     },
     inputRow: {
         flexDirection: 'row',
@@ -335,28 +352,30 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        backgroundColor: '#f2f2f2',
-        borderRadius: 22,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 6,
         paddingHorizontal: 16,
         paddingVertical: 10,
         fontSize: 15,
-        color: '#111',
+        color: '#fff',
         maxHeight: 100,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.12)',
     },
     sendBtn: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#ff4b4b',
+        backgroundColor: 'rgba(192,38,211,0.85)',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#ff4b4b',
-        shadowOpacity: 0.35,
-        shadowRadius: 6,
+        shadowColor: '#c026d3',
+        shadowOpacity: 0.45,
+        shadowRadius: 8,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
     },
-    sendBtnDisabled: { backgroundColor: '#ddd', shadowOpacity: 0 },
+    sendBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.1)', shadowOpacity: 0 },
     // Options modal
     optionsOverlay: {
         flex: 1,
@@ -364,8 +383,8 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     optionsSheet: {
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
         overflow: 'hidden',
         backgroundColor: 'rgba(20,10,40,0.97)',
         padding: 20,

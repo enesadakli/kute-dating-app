@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     },
     title: { fontSize: 22, fontWeight: '800', color: '#fff', letterSpacing: -0.3 },
     section: {
-        borderRadius: 20,
+        borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: 'rgba(255,255,255,0.08)',
         borderWidth: 1,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     rangeDash: { color: 'rgba(255,255,255,0.4)', fontSize: 20, marginTop: 14 },
     numberInput: {
         backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 12,
+        borderRadius: 6,
         paddingHorizontal: 14,
         paddingVertical: 11,
         fontSize: 17,
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     saveBtn: {
         backgroundColor: '#fff',
         padding: 15,
-        borderRadius: 14,
+        borderRadius: 7,
         alignItems: 'center',
         marginBottom: 32,
         shadowColor: '#000',
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
         padding: 15,
-        borderRadius: 14,
+        borderRadius: 7,
         alignItems: 'center',
         marginBottom: 10,
     },

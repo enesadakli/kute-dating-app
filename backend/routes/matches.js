@@ -1,5 +1,6 @@
 import express from 'express';
 import Match from '../models/Match.js';
+import Message from '../models/Message.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -79,25 +80,59 @@ router.get('/interacted/:userId', authMiddleware, async (req, res) => {
             return [];
         });
 
-        res.json(interactedIds);
+        // Never filter out demo users — they should always appear in discovery
+        const User = (await import('../models/User.js')).default;
+        const demoUsers = await User.find({ isDemo: true }).select('_id');
+        const demoIds = new Set(demoUsers.map(u => u._id.toString()));
+        const filtered = interactedIds.filter(id => !demoIds.has(id));
+
+        res.json(filtered);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// GET /api/matches/:userId — get all matches for a user
+// GET /api/matches/:userId — get all matches for a user, with last message, sorted by recency
 router.get('/:userId', authMiddleware, async (req, res) => {
     try {
+        const userId = req.params.userId;
+
         const matches = await Match.find({
-            users: req.params.userId,
+            users: userId,
             status: 'matched',
         }).populate('users', 'name bio photos');
 
-        const result = matches.map((match) => {
-            const otherUser = match.users.find(
-                (u) => u._id.toString() !== req.params.userId
-            );
-            return { matchId: match._id, user: otherUser };
+        const result = await Promise.all(matches.map(async (match) => {
+            const otherUser = match.users.find(u => u._id.toString() !== userId);
+
+            const lastMsg = await Message.findOne({ matchId: match._id })
+                .sort({ createdAt: -1 })
+                .populate('sender', '_id');
+
+            let lastMessage = null;
+            if (lastMsg) {
+                const isFromMe = lastMsg.sender._id.toString() === userId;
+                const seenBy = lastMsg.seenBy || [];
+                const seen = isFromMe
+                    ? seenBy.some(id => id.toString() === otherUser._id.toString())
+                    : seenBy.some(id => id.toString() === userId);
+
+                lastMessage = {
+                    content: lastMsg.content,
+                    createdAt: lastMsg.createdAt,
+                    isFromMe,
+                    seen,
+                };
+            }
+
+            return { matchId: match._id, user: otherUser, lastMessage };
+        }));
+
+        // Sort by most recent message (or match creation date if no messages)
+        result.sort((a, b) => {
+            const aTime = a.lastMessage ? new Date(a.lastMessage.createdAt) : new Date(0);
+            const bTime = b.lastMessage ? new Date(b.lastMessage.createdAt) : new Date(0);
+            return bTime - aTime;
         });
 
         res.json(result);

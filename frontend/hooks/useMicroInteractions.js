@@ -1,30 +1,33 @@
-import { useSharedValue, withSpring, withSequence, withTiming, runOnJS } from 'react-native-reanimated';
+import { useSharedValue, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
-// Press scale animation — wrap a component with this
+// Smooth ease-out curve — fast start, gentle settle (no bounce)
+const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
+
+// Press scale animation
 export function usePressScale(scaleTo = 0.92) {
     const scale = useSharedValue(1);
 
     const onPressIn = () => {
-        scale.value = withSpring(scaleTo, { damping: 15, stiffness: 300 });
+        scale.value = withTiming(scaleTo, { duration: 110, easing: Easing.out(Easing.quad) });
     };
 
     const onPressOut = () => {
-        scale.value = withSpring(1, { damping: 12, stiffness: 200 });
+        scale.value = withTiming(1, { duration: 280, easing: easeOut });
     };
 
     return { scale, onPressIn, onPressOut };
 }
 
-// Heart pop animation for like
+// Heart icon animation for like button
 export function useHeartPop() {
     const scale = useSharedValue(1);
     const opacity = useSharedValue(1);
 
     const pop = (callback) => {
         scale.value = withSequence(
-            withTiming(1.4, { duration: 180 }),
-            withSpring(1, { damping: 10, stiffness: 300 }),
+            withTiming(1.18, { duration: 140, easing: Easing.out(Easing.quad) }),
+            withTiming(1, { duration: 260, easing: easeOut }),
         );
         try {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -43,11 +46,11 @@ export function useShake() {
 
     const shake = () => {
         translateX.value = withSequence(
-            withTiming(-10, { duration: 60 }),
-            withTiming(10, { duration: 60 }),
-            withTiming(-8, { duration: 60 }),
-            withTiming(8, { duration: 60 }),
-            withTiming(0, { duration: 60 }),
+            withTiming(-8, { duration: 55, easing: Easing.out(Easing.quad) }),
+            withTiming(8, { duration: 55 }),
+            withTiming(-6, { duration: 55 }),
+            withTiming(6, { duration: 55 }),
+            withTiming(0, { duration: 55, easing: easeOut }),
         );
         try {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);

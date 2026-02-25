@@ -1,13 +1,25 @@
 import express from 'express';
 import Message from '../models/Message.js';
 import { analyzeChatSentiment } from '../services/aiService.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get messages for a match
-router.get('/:matchId', async (req, res) => {
+// Get messages for a match — also marks all incoming messages as seen
+router.get('/:matchId', authMiddleware, async (req, res) => {
     try {
         const messages = await Message.find({ matchId: req.params.matchId }).populate('sender', 'name');
+
+        // Mark all messages NOT sent by current user as seen
+        await Message.updateMany(
+            {
+                matchId: req.params.matchId,
+                sender: { $ne: req.user.id },
+                seenBy: { $ne: req.user.id },
+            },
+            { $addToSet: { seenBy: req.user.id } }
+        );
+
         res.json(messages);
     } catch (err) {
         res.status(500).json({ message: err.message });

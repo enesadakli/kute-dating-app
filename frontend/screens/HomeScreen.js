@@ -1,17 +1,17 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ActivityIndicator, Image,
-    Animated, PanResponder, Dimensions, TouchableOpacity,
+    Animated, Easing, PanResponder, Dimensions, TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import { authHeader } from '../utils/auth';
-import { LikeButton, NopeButton } from '../components/AnimatedLikeButton';
 import MatchCelebration from '../components/MatchCelebration';
 import GradientBackground from '../components/GradientBackground';
 import {
-    HeartIcon, XMarkIcon, FaceSmileIcon,
+    FaceSmileIcon, ArrowPathIcon,
 } from 'react-native-heroicons/outline';
 import { HeartIcon as HeartSolid } from 'react-native-heroicons/solid';
 
@@ -32,16 +32,34 @@ function calcAge(birthDate) {
 }
 
 // Photo carousel shown inside each card
-function CardPhotos({ photos, photoIndex, onLeft, onRight }) {
+function CardPhotos({ photos, photoIndex, onLeft, onRight, parallaxX }) {
     const photo = photos?.[photoIndex];
+    const uri = photo ? `${BASE_URL}${photo}` : null;
+
+    const bgStyle = parallaxX
+        ? { transform: [{ scale: 1.12 }, { translateX: parallaxX }] }
+        : { transform: [{ scale: 1.08 }] };
+
     return (
         <View style={styles.photoContainer}>
-            {photo ? (
-                <Image
-                    source={{ uri: `${BASE_URL}${photo}` }}
-                    style={styles.cardFullPhoto}
-                    resizeMode="cover"
-                />
+            {uri ? (
+                <>
+                    {/* Blurred background — fills card, parallax moves opposite to swipe */}
+                    <Animated.Image
+                        source={{ uri }}
+                        style={[styles.blurredBg, bgStyle]}
+                        resizeMode="cover"
+                        blurRadius={18}
+                    />
+                    {/* Dark tint so blur doesn't distract */}
+                    <View style={styles.blurTint} />
+                    {/* Full photo, nothing cropped */}
+                    <Image
+                        source={{ uri }}
+                        style={styles.cardContainPhoto}
+                        resizeMode="contain"
+                    />
+                </>
             ) : (
                 <View style={styles.photoPlaceholder}>
                     <FaceSmileIcon size={64} color="rgba(255,255,255,0.25)" />
@@ -74,7 +92,7 @@ function CardPhotos({ photos, photoIndex, onLeft, onRight }) {
     );
 }
 
-export default function HomeScreen({ route, navigation }) {
+export default function HomeScreen({ route }) {
     const { user } = route.params || {};
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -82,10 +100,18 @@ export default function HomeScreen({ route, navigation }) {
     const [photoIndex, setPhotoIndex] = useState(0);
     const position = useRef(new Animated.ValueXY()).current;
 
+    // Parallax: background image moves opposite to swipe direction
+    const parallaxX = position.x.interpolate({
+        inputRange: [-SCREEN_WIDTH, SCREEN_WIDTH],
+        outputRange: [30, -30],
+        extrapolate: 'clamp',
+    });
+
     const currentUserRef = useRef(null);
     useEffect(() => {
         currentUserRef.current = users[0] || null;
-        setPhotoIndex(0); // reset carousel when top card changes
+        setPhotoIndex(0);
+        // idle timer is managed by the separate useEffect below
     }, [users[0]?._id]);
 
     useFocusEffect(
@@ -140,6 +166,65 @@ export default function HomeScreen({ route, navigation }) {
         }
     };
 
+    // ── Idle hint animation ────────────────────────────────────────────────────
+    const idleTimerRef = useRef(null);
+    const hintAnimRef = useRef(null);
+    const hintRunningRef = useRef(false);
+
+    const startIdleTimerRef = useRef(null);
+    startIdleTimerRef.current = () => {
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        if (!currentUserRef.current) return;
+        idleTimerRef.current = setTimeout(() => {
+            if (hintRunningRef.current) return;
+            hintRunningRef.current = true;
+
+            hintAnimRef.current = Animated.sequence([
+                Animated.timing(position, {
+                    toValue: { x: 60, y: 0 },
+                    duration: 380,
+                    easing: Easing.out(Easing.cubic),
+                    useNativeDriver: false,
+                }),
+                Animated.timing(position, {
+                    toValue: { x: 0, y: 0 },
+                    duration: 340,
+                    easing: Easing.out(Easing.cubic),
+                    useNativeDriver: false,
+                }),
+                Animated.delay(55),
+                Animated.timing(position, {
+                    toValue: { x: -60, y: 0 },
+                    duration: 320,
+                    easing: Easing.out(Easing.cubic),
+                    useNativeDriver: false,
+                }),
+                Animated.timing(position, {
+                    toValue: { x: 0, y: 0 },
+                    duration: 295,
+                    easing: Easing.out(Easing.cubic),
+                    useNativeDriver: false,
+                }),
+            ]);
+            hintAnimRef.current.start(({ finished }) => {
+                hintRunningRef.current = false;
+                if (!finished) {
+                    position.setValue({ x: 0, y: 0 });
+                } else {
+                    // Animation completed naturally — schedule next hint
+                    startIdleTimerRef.current();
+                }
+            });
+        }, 5000);
+    };
+
+    // Start/reset idle timer whenever the top card changes
+    useEffect(() => {
+        if (users.length > 0) startIdleTimerRef.current();
+        return () => { if (idleTimerRef.current) clearTimeout(idleTimerRef.current); };
+    }, [users[0]?._id]);
+    // ──────────────────────────────────────────────────────────────────────────
+
     const onSwipeCompleteRef = useRef(null);
     onSwipeCompleteRef.current = (direction) => {
         const item = currentUserRef.current;
@@ -153,32 +238,45 @@ export default function HomeScreen({ route, navigation }) {
     const swipeOutRef = useRef(null);
     swipeOutRef.current = (direction) => {
         const x = direction === 'right' ? SCREEN_WIDTH + 200 : -SCREEN_WIDTH - 200;
-        Animated.spring(position, {
-            toValue: { x, y: direction === 'right' ? -30 : -30 },
+        Animated.timing(position, {
+            toValue: { x, y: -30 },
             useNativeDriver: false,
-            speed: 14,
-            bounciness: 2,
+            duration: 280,
+            easing: Easing.out(Easing.cubic),
         }).start(() => onSwipeCompleteRef.current(direction));
     };
 
     const resetPosition = () => {
-        Animated.spring(position, {
+        Animated.timing(position, {
             toValue: { x: 0, y: 0 },
-            friction: 6,
-            tension: 40,
+            duration: 300,
+            easing: Easing.out(Easing.cubic),
             useNativeDriver: false,
         }).start();
     };
 
     const panResponder = useRef(PanResponder.create({
         onStartShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+            // Cancel idle hint if running
+            if (hintRunningRef.current) {
+                hintAnimRef.current?.stop();
+                hintRunningRef.current = false;
+                position.setValue({ x: 0, y: 0 });
+            }
+            if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        },
         onPanResponderMove: (_, gesture) => {
             position.setValue({ x: gesture.dx, y: gesture.dy * 0.25 });
         },
         onPanResponderRelease: (_, gesture) => {
             if (gesture.dx > SWIPE_THRESHOLD) swipeOutRef.current('right');
             else if (gesture.dx < -SWIPE_THRESHOLD) swipeOutRef.current('left');
-            else resetPosition();
+            else {
+                resetPosition();
+                // Drag was released without swiping — restart idle timer
+                startIdleTimerRef.current();
+            }
         },
     })).current;
 
@@ -188,12 +286,22 @@ export default function HomeScreen({ route, navigation }) {
     });
     const likeOpacity = position.x.interpolate({
         inputRange: [0, SWIPE_THRESHOLD * 0.6],
-        outputRange: [0, 1],
+        outputRange: [0, 0.9],
         extrapolate: 'clamp',
     });
     const nopeOpacity = position.x.interpolate({
         inputRange: [-SWIPE_THRESHOLD * 0.6, 0],
-        outputRange: [1, 0],
+        outputRange: [0.9, 0],
+        extrapolate: 'clamp',
+    });
+    const likeScale = position.x.interpolate({
+        inputRange: [0, SWIPE_THRESHOLD * 0.6],
+        outputRange: [0.6, 1],
+        extrapolate: 'clamp',
+    });
+    const nopeScale = position.x.interpolate({
+        inputRange: [-SWIPE_THRESHOLD * 0.6, 0],
+        outputRange: [1, 0.6],
         extrapolate: 'clamp',
     });
     const cardAnimStyle = {
@@ -218,14 +326,19 @@ export default function HomeScreen({ route, navigation }) {
             </View>
 
             {users.length === 0 ? (
-                /* Empty state */
+                /* Empty state — Liquid Glass card */
                 <View style={styles.centered}>
-                    <HeartSolid size={56} color="rgba(192,38,211,0.4)" />
-                    <Text style={styles.emptyTitle}>Hepsi bu kadar!</Text>
-                    <Text style={styles.emptySubText}>Yeni kullanıcılar gelince burada görünecek.</Text>
-                    <TouchableOpacity style={styles.refreshBtn} onPress={fetchUsers}>
-                        <Text style={styles.refreshBtnText}>Yenile</Text>
-                    </TouchableOpacity>
+                    <BlurView intensity={22} tint="dark" style={styles.emptyCard}>
+                        <HeartSolid size={52} color="rgba(192,38,211,0.55)" />
+                        <Text style={styles.emptyTitle}>Hepsi bu kadar!</Text>
+                        <Text style={styles.emptySubText}>
+                            Yeni kullanıcılar gelince burada görünecek.
+                        </Text>
+                        <TouchableOpacity style={styles.refreshBtn} onPress={fetchUsers}>
+                            <ArrowPathIcon size={16} color="#fff" />
+                            <Text style={styles.refreshBtnText}>Yenile</Text>
+                        </TouchableOpacity>
+                    </BlurView>
                 </View>
             ) : (
                 <View style={styles.cardArea}>
@@ -251,13 +364,17 @@ export default function HomeScreen({ route, navigation }) {
                         {...panResponder.panHandlers}
                     >
                         {/* LIKE stamp */}
-                        <Animated.View style={[styles.stamp, styles.likeStamp, { opacity: likeOpacity }]}>
-                            <HeartIcon size={18} color="#4ade80" />
+                        <Animated.View style={[styles.stamp, styles.likeStamp, {
+                            opacity: likeOpacity,
+                            transform: [{ rotate: '-15deg' }, { scale: likeScale }],
+                        }]}>
                             <Text style={styles.likeStampText}>LIKE</Text>
                         </Animated.View>
                         {/* NOPE stamp */}
-                        <Animated.View style={[styles.stamp, styles.nopeStamp, { opacity: nopeOpacity }]}>
-                            <XMarkIcon size={18} color="#f87171" />
+                        <Animated.View style={[styles.stamp, styles.nopeStamp, {
+                            opacity: nopeOpacity,
+                            transform: [{ rotate: '15deg' }, { scale: nopeScale }],
+                        }]}>
                             <Text style={styles.nopeStampText}>NOPE</Text>
                         </Animated.View>
 
@@ -266,6 +383,7 @@ export default function HomeScreen({ route, navigation }) {
                             photoIndex={photoIndex}
                             onLeft={() => setPhotoIndex(i => Math.max(0, i - 1))}
                             onRight={() => setPhotoIndex(i => Math.min((users[0].photos?.length || 1) - 1, i + 1))}
+                            parallaxX={parallaxX}
                         />
 
                         {/* Bottom gradient overlay with name/bio */}
@@ -284,11 +402,6 @@ export default function HomeScreen({ route, navigation }) {
                         </LinearGradient>
                     </Animated.View>
 
-                    {/* Action buttons below card */}
-                    <View style={styles.actionContainer}>
-                        <NopeButton onPress={() => swipeOutRef.current('left')} />
-                        <LikeButton onPress={() => swipeOutRef.current('right')} />
-                    </View>
                 </View>
             )}
 
@@ -315,6 +428,48 @@ const styles = StyleSheet.create({
         color: '#fff',
         letterSpacing: -1.5,
     },
+    // Empty state — Liquid Glass card
+    emptyCard: {
+        borderRadius: 12,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(255,255,255,0.07)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.15)',
+        padding: 36,
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: 340,
+    },
+    emptyTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#fff',
+        marginTop: 18,
+        marginBottom: 8,
+    },
+    emptySubText: {
+        fontSize: 15,
+        color: 'rgba(255,255,255,0.45)',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 24,
+    },
+    refreshBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: 'rgba(255,255,255,0.12)',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 7,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
+    },
+    refreshBtnText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 15,
+    },
     cardArea: {
         flex: 1,
         alignItems: 'center',
@@ -325,7 +480,7 @@ const styles = StyleSheet.create({
         left: 14,
         right: 14,
         height: CARD_HEIGHT,
-        borderRadius: 22,
+        borderRadius: 12,
         overflow: 'hidden',
         backgroundColor: '#1a0a30',
         shadowColor: '#000',
@@ -343,9 +498,16 @@ const styles = StyleSheet.create({
         flex: 1,
         position: 'relative',
     },
-    cardFullPhoto: {
+    blurredBg: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    blurTint: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.30)',
+    },
+    cardContainPhoto: {
+        flex: 1,
         width: '100%',
-        height: '100%',
     },
     photoPlaceholder: {
         flex: 1,
@@ -412,63 +574,37 @@ const styles = StyleSheet.create({
     },
     stamp: {
         position: 'absolute',
-        top: 30,
+        top: 34,
         zIndex: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        borderWidth: 3,
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
+        borderWidth: 3.5,
+        borderRadius: 4,
+        paddingHorizontal: 14,
+        paddingVertical: 7,
     },
     likeStamp: {
-        left: 18,
+        left: 20,
         borderColor: '#4ade80',
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        transform: [{ rotate: '-18deg' }],
     },
     nopeStamp: {
-        right: 18,
+        right: 20,
         borderColor: '#f87171',
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        transform: [{ rotate: '18deg' }],
     },
-    likeStampText: { color: '#4ade80', fontSize: 22, fontWeight: '900', letterSpacing: 1 },
-    nopeStampText: { color: '#f87171', fontSize: 22, fontWeight: '900', letterSpacing: 1 },
-    actionContainer: {
-        position: 'absolute',
-        bottom: 14,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 36,
+    likeStampText: {
+        color: '#4ade80',
+        fontSize: 26,
+        fontWeight: '900',
+        letterSpacing: 3,
+        textShadowColor: '#4ade80',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
     },
-    // Empty state
-    emptyTitle: {
-        fontSize: 22,
-        fontWeight: '800',
-        color: '#fff',
-        marginTop: 18,
-        marginBottom: 8,
-    },
-    emptySubText: {
-        fontSize: 15,
-        color: 'rgba(255,255,255,0.45)',
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 24,
-    },
-    refreshBtn: {
-        backgroundColor: 'rgba(255,255,255,0.12)',
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
-    },
-    refreshBtnText: {
-        color: '#fff',
-        fontWeight: '700',
-        fontSize: 15,
+    nopeStampText: {
+        color: '#f87171',
+        fontSize: 26,
+        fontWeight: '900',
+        letterSpacing: 3,
+        textShadowColor: '#f87171',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
     },
 });

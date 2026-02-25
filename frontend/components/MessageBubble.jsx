@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, Easing } from 'react-native-reanimated';
+import { CheckIcon } from 'react-native-heroicons/outline';
+import { CheckIcon as CheckSolid } from 'react-native-heroicons/solid';
 
 const BASE_URL = 'http://localhost:3001';
 
-export default function MessageBubble({ item, isMe, matchPhoto }) {
+export default function MessageBubble({ item, isMe, matchPhoto, isLastMine, seen }) {
     return (
         <Animated.View
-            entering={FadeInDown.springify().damping(18).stiffness(120)}
+            entering={FadeInDown.duration(260).easing(Easing.bezier(0.16, 1, 0.3, 1))}
             style={[styles.row, isMe ? styles.rowMe : styles.rowThem]}
         >
             {!isMe && (
@@ -31,11 +33,26 @@ export default function MessageBubble({ item, isMe, matchPhoto }) {
                 <Text style={[styles.text, isMe ? styles.textMe : styles.textThem]}>
                     {item.content}
                 </Text>
-                <Text style={[styles.time, isMe ? styles.timeMe : styles.timeThem]}>
-                    {item.createdAt
-                        ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : ''}
-                </Text>
+                <View style={styles.metaRow}>
+                    <Text style={[styles.time, isMe ? styles.timeMe : styles.timeThem]}>
+                        {item.createdAt
+                            ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : ''}
+                    </Text>
+                    {/* Seen ticks — only on last message from me */}
+                    {isMe && isLastMine && (
+                        <View style={styles.tickRow}>
+                            {seen ? (
+                                <>
+                                    <CheckSolid size={11} color="rgba(167,139,250,0.9)" />
+                                    <CheckSolid size={11} color="rgba(167,139,250,0.9)" style={styles.tickOverlap} />
+                                </>
+                            ) : (
+                                <CheckIcon size={11} color="rgba(255,255,255,0.45)" />
+                            )}
+                        </View>
+                    )}
+                </View>
             </View>
         </Animated.View>
     );
@@ -73,15 +90,15 @@ const styles = StyleSheet.create({
         maxWidth: '72%',
         paddingHorizontal: 14,
         paddingVertical: 10,
-        borderRadius: 20,
+        borderRadius: 12,
     },
     bubbleMe: {
         backgroundColor: 'rgba(192,38,211,0.85)',
-        borderBottomRightRadius: 4,
+        borderBottomRightRadius: 3,
     },
     bubbleThem: {
         backgroundColor: 'rgba(255,255,255,0.12)',
-        borderBottomLeftRadius: 4,
+        borderBottomLeftRadius: 3,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
     },
@@ -94,7 +111,21 @@ const styles = StyleSheet.create({
     text: { fontSize: 15, lineHeight: 20 },
     textMe: { color: '#fff' },
     textThem: { color: 'rgba(255,255,255,0.9)' },
-    time: { fontSize: 10, marginTop: 4, alignSelf: 'flex-end' },
+    metaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: 4,
+        marginTop: 4,
+    },
+    time: { fontSize: 10 },
     timeMe: { color: 'rgba(255,255,255,0.5)' },
     timeThem: { color: 'rgba(255,255,255,0.35)' },
+    tickRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    tickOverlap: {
+        marginLeft: -5,
+    },
 });

@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 14,
         paddingHorizontal: 36,
-        borderRadius: 30,
+        borderRadius: 8,
         gap: 6,
     },
     likeButton: {
