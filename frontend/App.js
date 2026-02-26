@@ -6,15 +6,16 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { HomeIcon, ChatBubbleLeftRightIcon, UserCircleIcon } from 'react-native-heroicons/outline';
 
-import LoginScreen from './screens/LoginScreen';
-import HomeScreen from './screens/HomeScreen';
-import MatchesScreen from './screens/MatchesScreen';
-import ChatScreen from './screens/ChatScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import SettingsScreen from './screens/SettingsScreen';
+import LoginScreen      from './screens/LoginScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
+import HomeScreen       from './screens/HomeScreen';
+import MatchesScreen    from './screens/MatchesScreen';
+import ChatScreen       from './screens/ChatScreen';
+import ProfileScreen    from './screens/ProfileScreen';
+import SettingsScreen   from './screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const Tab   = createBottomTabNavigator();
 
 function MainTabs({ route }) {
     const { user } = route.params || {};
@@ -25,7 +26,7 @@ function MainTabs({ route }) {
                 headerShown: false,
                 tabBarStyle: {
                     backgroundColor: 'transparent',
-                    borderTopColor: 'rgba(255,255,255,0.1)',
+                    borderTopColor: 'rgba(255,255,255,0.08)',
                     borderTopWidth: 1,
                     paddingBottom: 6,
                     paddingTop: 6,
@@ -36,11 +37,11 @@ function MainTabs({ route }) {
                     <BlurView
                         intensity={40}
                         tint="dark"
-                        style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,4,22,0.55)' }]}
+                        style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(5,8,22,0.60)' }]}
                     />
                 ),
-                tabBarActiveTintColor: '#fff',
-                tabBarInactiveTintColor: 'rgba(255,255,255,0.38)',
+                tabBarActiveTintColor: '#00E1FF',
+                tabBarInactiveTintColor: 'rgba(255,255,255,0.35)',
                 tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
             }}
         >
@@ -81,6 +82,11 @@ export default function App() {
                         name="Login"
                         component={LoginScreen}
                         options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                        name="Onboarding"
+                        component={OnboardingScreen}
+                        options={{ headerShown: false, animation: 'slide_from_right' }}
                     />
                     <Stack.Screen
                         name="Main"

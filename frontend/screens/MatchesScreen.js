@@ -80,7 +80,7 @@ export default function MatchesScreen({ route, navigation }) {
                             {msg.isFromMe ? 'Sen: ' : ''}{msg.content}
                         </Text>
                     ) : (
-                        <Text style={styles.newMatch}>Merhaba de 👋</Text>
+                        <Text style={styles.newMatch}>Merhaba de!</Text>
                     )}
                 </View>
 
@@ -121,13 +121,12 @@ export default function MatchesScreen({ route, navigation }) {
 
     return (
         <GradientBackground>
+            <Text style={styles.screenTitle}>Eşleşmeler</Text>
             {matches.length === 0 ? (
                 <View style={styles.centered}>
-                    <Text style={styles.emptyText}>No matches yet.</Text>
-                    <View style={styles.emptyIconRow}>
-                        <HeartIcon size={18} color="rgba(255,255,255,0.6)" />
-                        <Text style={styles.emptySubText}>Keep swiping!</Text>
-                    </View>
+                    <HeartIcon size={36} color="rgba(255,0,122,0.55)" />
+                    <Text style={styles.emptyText}>Henüz eşleşme yok.</Text>
+                    <Text style={styles.emptySubText}>Keşfetmeye devam et!</Text>
                 </View>
             ) : (
                 <FlatList
@@ -142,38 +141,44 @@ export default function MatchesScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
+    screenTitle: {
+        fontSize: 26,
+        fontWeight: '800',
+        color: '#fff',
+        letterSpacing: -0.5,
+        paddingHorizontal: 20,
+        paddingTop: 58,
+        paddingBottom: 14,
+    },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        gap: 10,
     },
     emptyText: {
         fontSize: 18,
         color: '#fff',
         fontWeight: '700',
-        marginBottom: 6,
-    },
-    emptyIconRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
+        marginTop: 6,
     },
     emptySubText: {
         fontSize: 15,
-        color: 'rgba(255,255,255,0.6)',
+        color: 'rgba(255,255,255,0.55)',
     },
     list: {
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingBottom: 100,
     },
     matchItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        borderRadius: 8,
+        backgroundColor: 'rgba(0,0,0,0.38)',
+        borderRadius: 16,
         padding: 14,
         marginBottom: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.12)',
+        borderWidth: 0.5,
+        borderColor: 'rgba(255,255,255,0.13)',
     },
     avatarPhoto: {
         width: 56,
@@ -210,7 +215,7 @@ const styles = StyleSheet.create({
     },
     lastMsg: {
         fontSize: 13,
-        color: 'rgba(255,255,255,0.45)',
+        color: 'rgba(255,255,255,0.62)',
     },
     lastMsgUnread: {
         color: 'rgba(255,255,255,0.85)',
@@ -230,7 +235,7 @@ const styles = StyleSheet.create({
     },
     timeText: {
         fontSize: 11,
-        color: 'rgba(255,255,255,0.3)',
+        color: 'rgba(255,255,255,0.50)',
     },
     timeTextUnread: {
         color: '#c026d3',

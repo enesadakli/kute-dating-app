@@ -62,7 +62,7 @@ function CardPhotos({ photos, photoIndex, onLeft, onRight, parallaxX }) {
                 </>
             ) : (
                 <View style={styles.photoPlaceholder}>
-                    <FaceSmileIcon size={64} color="rgba(255,255,255,0.25)" />
+                    <FaceSmileIcon size={64} color="rgba(0,225,255,0.30)" />
                 </View>
             )}
 
@@ -326,16 +326,16 @@ export default function HomeScreen({ route }) {
             </View>
 
             {users.length === 0 ? (
-                /* Empty state — Liquid Glass card */
+                /* Empty state — Light Glass card */
                 <View style={styles.centered}>
                     <BlurView intensity={22} tint="dark" style={styles.emptyCard}>
-                        <HeartSolid size={52} color="rgba(192,38,211,0.55)" />
+                        <HeartSolid size={52} color="#FF007A" />
                         <Text style={styles.emptyTitle}>Hepsi bu kadar!</Text>
                         <Text style={styles.emptySubText}>
                             Yeni kullanıcılar gelince burada görünecek.
                         </Text>
                         <TouchableOpacity style={styles.refreshBtn} onPress={fetchUsers}>
-                            <ArrowPathIcon size={16} color="#fff" />
+                            <ArrowPathIcon size={16} color="#00E1FF" />
                             <Text style={styles.refreshBtnText}>Yenile</Text>
                         </TouchableOpacity>
                     </BlurView>
@@ -428,13 +428,13 @@ const styles = StyleSheet.create({
         color: '#fff',
         letterSpacing: -1.5,
     },
-    // Empty state — Liquid Glass card
+    // Empty state — Dark Glass card
     emptyCard: {
-        borderRadius: 12,
+        borderRadius: 20,
         overflow: 'hidden',
-        backgroundColor: 'rgba(255,255,255,0.07)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.15)',
+        backgroundColor: 'rgba(0,0,0,0.40)',
+        borderWidth: 0.5,
+        borderColor: 'rgba(255,255,255,0.13)',
         padding: 36,
         alignItems: 'center',
         width: '100%',
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     },
     emptySubText: {
         fontSize: 15,
-        color: 'rgba(255,255,255,0.45)',
+        color: '#A0AEC0',
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: 24,
@@ -458,15 +458,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        backgroundColor: 'rgba(255,255,255,0.12)',
+        backgroundColor: 'rgba(255,255,255,0.08)',
         paddingHorizontal: 24,
         paddingVertical: 12,
-        borderRadius: 7,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 50,
+        borderWidth: 0.5,
+        borderColor: 'rgba(0,225,255,0.35)',
     },
     refreshBtnText: {
-        color: '#fff',
+        color: '#00E1FF',
         fontWeight: '700',
         fontSize: 15,
     },
@@ -480,13 +480,13 @@ const styles = StyleSheet.create({
         left: 14,
         right: 14,
         height: CARD_HEIGHT,
-        borderRadius: 12,
+        borderRadius: 20,
         overflow: 'hidden',
-        backgroundColor: '#1a0a30',
+        backgroundColor: '#0D0A1E',
         shadowColor: '#000',
-        shadowOpacity: 0.35,
+        shadowOpacity: 0.45,
         shadowOffset: { width: 0, height: 12 },
-        shadowRadius: 24,
+        shadowRadius: 28,
         elevation: 16,
     },
     nextCard: {
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     },
     blurTint: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.30)',
+        backgroundColor: 'rgba(0,0,0,0.28)',
     },
     cardContainPhoto: {
         flex: 1,
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     },
     photoPlaceholder: {
         flex: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: 'rgba(255,255,255,0.04)',
         justifyContent: 'center',
         alignItems: 'center',
     },

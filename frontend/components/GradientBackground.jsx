@@ -1,101 +1,70 @@
-import React, { useEffect } from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Svg, { Defs, RadialGradient, Rect, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-    useSharedValue,
-    useAnimatedStyle,
-    withRepeat,
-    withTiming,
-    withSequence,
-    Easing,
-} from 'react-native-reanimated';
 
-// Gently drifting ambient blob
-function Blob({ style, color, delay = 0 }) {
-    const tx = useSharedValue(0);
-    const ty = useSharedValue(0);
-    const scale = useSharedValue(1);
-
-    useEffect(() => {
-        tx.value = withRepeat(
-            withSequence(
-                withTiming(14, { duration: 6000 + delay, easing: Easing.inOut(Easing.sin) }),
-                withTiming(-10, { duration: 5500 + delay, easing: Easing.inOut(Easing.sin) }),
-            ),
-            -1, true
-        );
-        ty.value = withRepeat(
-            withSequence(
-                withTiming(-10, { duration: 5200 + delay, easing: Easing.inOut(Easing.sin) }),
-                withTiming(14, { duration: 6200 + delay, easing: Easing.inOut(Easing.sin) }),
-            ),
-            -1, true
-        );
-        scale.value = withRepeat(
-            withSequence(
-                withTiming(1.08, { duration: 4800 + delay, easing: Easing.inOut(Easing.sin) }),
-                withTiming(0.94, { duration: 5600 + delay, easing: Easing.inOut(Easing.sin) }),
-            ),
-            -1, true
-        );
-    }, []);
-
-    const animStyle = useAnimatedStyle(() => ({
-        transform: [
-            { translateX: tx.value },
-            { translateY: ty.value },
-            { scale: scale.value },
-        ],
-    }));
-
+const MeshGradientStatic = memo(() => {
     return (
-        <Animated.View
-            style={[styles.blob, style, animStyle, { backgroundColor: color }]}
-        />
+        <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
+            <Defs>
+                {/* Main Dark Base */}
+                <SvgLinearGradient id="bgBase" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor="#121625" />
+                    <Stop offset="1" stopColor="#0B0F19" />
+                </SvgLinearGradient>
+
+                {/* Left Hot Pink Bloom */}
+                <RadialGradient id="pinkBloom" cx="0%" cy="100%" rx="90%" ry="90%">
+                    <Stop offset="0" stopColor="#ff0066" stopOpacity="0.8" />
+                    <Stop offset="0.4" stopColor="#ff0066" stopOpacity="0.5" />
+                    <Stop offset="1" stopColor="#ff0066" stopOpacity="0" />
+                </RadialGradient>
+
+                {/* Right Electric Blue Bloom */}
+                <RadialGradient id="blueBloom" cx="100%" cy="100%" rx="90%" ry="90%">
+                    <Stop offset="0" stopColor="#0055ff" stopOpacity="0.8" />
+                    <Stop offset="0.4" stopColor="#0055ff" stopOpacity="0.4" />
+                    <Stop offset="1" stopColor="#0055ff" stopOpacity="0" />
+                </RadialGradient>
+
+                {/* Center Lower Violet Bloom to bridge pink and blue */}
+                <RadialGradient id="violetBloom" cx="50%" cy="100%" rx="70%" ry="70%">
+                    <Stop offset="0" stopColor="#8a2be2" stopOpacity="0.6" />
+                    <Stop offset="0.5" stopColor="#8a2be2" stopOpacity="0.3" />
+                    <Stop offset="1" stopColor="#8a2be2" stopOpacity="0" />
+                </RadialGradient>
+
+            </Defs>
+
+            {/* Render Bottom to Top */}
+            <Rect width="100%" height="100%" fill="url(#bgBase)" />
+            <Rect width="100%" height="100%" fill="url(#pinkBloom)" />
+            <Rect width="100%" height="100%" fill="url(#blueBloom)" />
+            <Rect width="100%" height="100%" fill="url(#violetBloom)" />
+        </Svg>
     );
-}
+});
 
 export default function GradientBackground({ children, style }) {
     return (
         <View style={[styles.root, style]}>
-            {/* Deep dark base gradient: near-black deep plum → midnight navy */}
+            {/* ── Lovable Mesh Gradient (Static SVG) ── */}
+            <MeshGradientStatic />
+
+            {/* Top & bottom darkening vignette — maximises text readability */}
             <LinearGradient
-                colors={['#0e0514', '#1b0a35', '#12183d', '#070d1e']}
-                start={{ x: 0.15, y: 0 }}
-                end={{ x: 0.85, y: 1 }}
+                colors={[
+                    'rgba(11,15,25,0.7)',
+                    'rgba(11,15,25,0.1)',
+                    'rgba(11,15,25,0.1)',
+                    'rgba(11,15,25,0.2)',
+                ]}
+                locations={[0, 0.22, 0.78, 1]}
                 style={StyleSheet.absoluteFill}
+                pointerEvents="none"
             />
 
-            {/* Subtle ambient blobs — very low opacity */}
-            <Blob
-                color="rgba(180, 50, 120, 0.18)"
-                delay={0}
-                style={{ width: 340, height: 340, top: -100, left: -80 }}
-            />
-            <Blob
-                color="rgba(100, 60, 200, 0.14)"
-                delay={900}
-                style={{ width: 300, height: 300, top: 140, right: -80 }}
-            />
-            <Blob
-                color="rgba(30, 80, 180, 0.12)"
-                delay={1800}
-                style={{ width: 260, height: 260, bottom: 40, left: 20 }}
-            />
-            <Blob
-                color="rgba(160, 40, 100, 0.10)"
-                delay={500}
-                style={{ width: 200, height: 200, bottom: 160, right: 10 }}
-            />
-
-            {/* Very subtle top-left highlight */}
-            <LinearGradient
-                colors={['rgba(255,255,255,0.04)', 'transparent']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0.7 }}
-                style={[StyleSheet.absoluteFill, styles.highlightOverlay]}
-            />
-
+            {/* ── Content ── */}
             {children}
         </View>
     );
@@ -105,12 +74,7 @@ const styles = StyleSheet.create({
     root: {
         flex: 1,
         overflow: 'hidden',
-    },
-    blob: {
-        position: 'absolute',
-        borderRadius: 999,
-    },
-    highlightOverlay: {
-        opacity: 0.8,
+        backgroundColor: '#0B0F19',
     },
 });
+
