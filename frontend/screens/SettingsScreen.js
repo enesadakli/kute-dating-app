@@ -9,10 +9,9 @@ import { authHeader, clearToken } from '../utils/auth';
 import GradientBackground from '../components/GradientBackground';
 import {
     MapPinIcon, AdjustmentsHorizontalIcon,
-    SnowflakeIcon, TrashIcon, ChevronLeftIcon,
+     TrashIcon, ChevronLeftIcon, PauseIcon
 } from 'react-native-heroicons/outline';
 
-// SnowflakeIcon might not exist — fall back to a text icon if needed
 const API_URL = 'http://localhost:3001/api';
 
 export default function SettingsScreen({ route, navigation }) {
@@ -177,7 +176,12 @@ export default function SettingsScreen({ route, navigation }) {
                 <TouchableOpacity style={styles.dangerBtn} onPress={handleFreeze} disabled={freezing}>
                     {freezing
                         ? <ActivityIndicator color="#f59e0b" />
-                        : <Text style={[styles.dangerBtnText, { color: '#f59e0b' }]}>Hesabı Dondur</Text>
+                        : (
+                            <View style={styles.dangerBtnInner}>
+                                <PauseIcon size={16} color="#f59e0b" />
+                                <Text style={[styles.dangerBtnText, { color: '#f59e0b' }]}>Hesabı Dondur</Text>
+                            </View>
+                        )
                     }
                 </TouchableOpacity>
 
